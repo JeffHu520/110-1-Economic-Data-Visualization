@@ -37,12 +37,7 @@ df$PotStickers = data.frame(
     )
   )
 
-```
-
-
-```{r}
-
-dx = -0.25 #input$dx
+dx = -0.3 #input$dx
 dy = -20 #input$dy
 h = 0.2 #input$h
 
@@ -209,4 +204,5 @@ ggplot()+
     legend.position = "none",
     plot.title = element_text(size = 50,hjust = 0.5),
     plot.subtitle = element_text(size = 40,hjust = 0.5),
-    plot.caption = element_text(size = 25))
+    plot.caption = element_text(size = 25)
+  )
