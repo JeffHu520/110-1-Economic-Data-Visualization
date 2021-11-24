@@ -196,8 +196,8 @@ ggplot()+
   theme_void()+
   labs(
     title = "今晚...你吃的是...?",
-    subtitle = "常見相似小吃比較",
-    caption = "經濟部商業司 商工登記公示資料查詢"
+    subtitle = "常見相似小吃家數比較",
+    caption = "經濟部商業司 商工登記公示資料"
   )+
   xlim(1-1, 5+1)+
   theme(
