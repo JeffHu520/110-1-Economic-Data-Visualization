@@ -59,7 +59,7 @@ ggplot(
   )+
   labs(
     title = "2015年研發支出前10高的國家",
-    caption = "資料來源 OECD Statistics"
+    caption = "資料來源:OECD Statistics"
   )+
   theme(
     axis.text.x = element_text(vjust = 0.65, angle = 35)
