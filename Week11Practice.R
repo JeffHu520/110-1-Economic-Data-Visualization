@@ -29,7 +29,9 @@ ggplot(
       x = country,
       y = percent*100000,
       group = 1
-    )
+    ),
+    size = 2,
+    color = "red"
   )+
   geom_point(
     mapping = aes(
@@ -45,6 +47,7 @@ ggplot(
       label = round(percent, digits = 2),
       group = 1
     ),
+    size = 5,
     hjust = -0.25
   )+
   scale_y_continuous(
@@ -65,4 +68,3 @@ ggplot(
   theme(
     axis.text.x = element_text(vjust = 0.65, angle = 35)
   )
-
