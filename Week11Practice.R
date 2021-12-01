@@ -21,6 +21,7 @@ ggplot(
       x = country,
       y = value
     ),
+    fill = "#015fb1",
     width = 0.5
   )+
   geom_line(
