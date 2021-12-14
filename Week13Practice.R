@@ -1,4 +1,6 @@
 library(readr)
+library(magrittr)
+library(dplyr)
 
 df <- read_csv("https://raw.githubusercontent.com/JeffHu520/110-1-Economic-Data-Visualization/main/GERD.csv",
                show_col_types = FALSE
@@ -52,7 +54,7 @@ ggplot(
     width = 0.7
   )+
   scale_y_continuous(
-    name = "平均每人研發支出(美金)",
+    name = "平均每人研發支出(美元)",
     breaks = c(500,1000,1500,2000,2500),
     label = c("500","1000","1500","2000","2500")
     ,expand = expansion(mult = c(0,0.01))
