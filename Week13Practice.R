@@ -18,6 +18,7 @@ df1 %>%
   pull(country) -> levels
 
 df1$country <- factor(df1$country,levels=as.character(levels))
+
 ggplot(
   data = df1
 )+
@@ -32,15 +33,7 @@ ggplot(
   geom_col(
     mapping = aes(
       x = country,
-      y = (enterprise_pc+highedu_pc+government_pc)*1000000,
-      fill = "企業"
-    ),
-    width = 0.7
-  )+
-  geom_col(
-    mapping = aes(
-      x = country,
-      y = (highedu_pc+government_pc)*1000000,
+      y = (highedu_pc+government_pc+enterprise_pc)*1000000,
       fill = "高等教育機構"
     ),
     width = 0.7
@@ -48,13 +41,21 @@ ggplot(
   geom_col(
     mapping = aes(
       x = country,
-      y = government_pc*1000000,
+      y = (government_pc+enterprise_pc)*1000000,
       fill = "政府"
     ),
     width = 0.7
   )+
+  geom_col(
+    mapping = aes(
+      x = country,
+      y = enterprise_pc*1000000,
+      fill = "企業"
+    ),
+    width = 0.7
+  )+
   scale_y_continuous(
-    name = "平均每人研發支出(美元)",
+    name = "平均每人研發支出(美金)",
     breaks = c(500,1000,1500,2000,2500),
     label = c("500","1000","1500","2000","2500")
     ,expand = expansion(mult = c(0,0.01))
@@ -65,17 +66,16 @@ ggplot(
     label = c("新加坡","瑞士","瑞典","美國","奧地利","以色列","南韓","丹麥","台灣","德國")
   )+
   theme(
-    panel.background= element_rect(fill = "#DDF3F5"),
-    panel.grid.major.y = element_line(colour = "#EAAC7F"),
+    panel.grid.major.y = element_line(color = "grey50"),
     plot.caption = element_text(hjust = 1.35),
     axis.title.x = element_text(vjust = -4)
   )+
   scale_fill_manual(
     name = "資金來源",
-    values = c("其他"="#F0EBCC",
-               "企業"="#74DBEF",
-               "高等教育機構"="#0074E4",
-               "政府"="#264E86"
+    values = c("其他"="#CFD3CE",
+               "企業"="#23587f",
+               "高等教育機構"="#95d1cc",
+               "政府"="#5684ac"
     )
   )+
   labs(
