@@ -1,0 +1,295 @@
+---
+title: "期末專題"
+author: "胡睿麟"
+date: "2/6/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, cache = T, warning = F, message = F, 
+  fig.showtext=T)
+library(ggplot2)
+library(showtext)
+library(colorspace)
+sysfonts::font_add_google('Noto Sans TC')
+showtext_auto()
+theme_set(
+  theme(
+    text=element_text(family = "Noto Sans TC")
+  )+
+    theme_classic()
+)
+
+```
+
+#認識台灣茶
+
+## 2020年台灣各縣市茶葉產量
+
+南投縣生產量最高,約占全國生產量68%,
+其次是嘉義縣(約12%)
+```{r}
+
+mp <- econDV2::Map()
+econDV2::Object(background)
+mp$sf$get_sf_taiwan_simplified() ->
+  sf_taiwan_simplified
+
+# 底圖函數
+background$台灣本島$縣市 <- function(){
+  sf_taiwan_simplified$台灣本島$縣市 |>
+  mp$sf$make_background_map(
+      color="white",
+      size=0.14
+  )
+}
+# 載入茶葉收穫面積與產量
+area_n_quantity <-
+readr::read_csv(
+  "https://raw.githubusercontent.com/JeffHu520/110-1-Economic-Data-Visualization/main/area_n_quantity.csv",
+  show_col_types = FALSE
+  )|>
+  dplyr::filter(
+    年度 == "2020",
+    特用作物類別 == "茶葉")
+df1 <- area_n_quantity
+# 與sf資料合併
+# 先將台,臺兩字一致化
+df1 |>
+  dplyr::mutate(
+    地區別 =  stringr::str_replace(地區別,"台","臺"
+    )
+  ) -> df1
+# 合併資料
+df1$join$inner <- 
+  sf_taiwan_simplified$台灣本島$縣市|>
+    dplyr::inner_join(
+      df1,
+      by = c("map_id" = "地區別")
+    )
+
+# 切割資料範圍
+df1$join$inner$產量 |>
+  as.character() |>
+  as.numeric() |>
+  cut(c(-1,50,250,500,1000,2000,9754.887),ordered_result = T) -> quantity_cut
+quantity_cut |>
+  levels() <- 
+  c("0-50","50-250","250-500","500-1000","1000-2000","2000以上") 
+
+quantity_cut -> df1$join$inner$產量
+# 註冊調色盤
+colorspace::sequential_hcl(n = 6, h = c(151, 107), c = c(60, NA, 0), l = c(25, 91), power = c(0.5, 1.5), register = "tea_green")
+
+df1$map$choropleth <- function(){
+  background$台灣本島$縣市()+
+    geom_sf(
+      data = df1$join$inner,
+      mapping = aes(
+        fill = 產量
+      ),
+      color = "white",
+      size = 0.15
+    )
+}
+df1$map$choropleth()+
+  colorspace::scale_fill_discrete_sequential(
+    palette = "tea_green"
+  )+
+  theme_void()+
+  labs(
+    title = "2020年台灣各縣市茶葉產量",
+    subtitle = "單位 : 公噸",
+    caption = "資料來源：行政院農業委員會資料開放平台",
+) -> quantity_map
+quantity_map
+```
+
+## 2006-2020年臺灣茶葉生產及進出口之變化
+因應國人喝茶需求逐漸提高,飲料店遍布街巷之中,進15年以來進口量漸增,在國內生產成本較高的競爭壓力之下,台灣茶產業轉攻精緻市場為主,外銷出口量也逐漸增加
+```{r}
+
+readr::read_csv(
+  "https://raw.githubusercontent.com/JeffHu520/110-1-Economic-Data-Visualization/main/tea_production_n_trade.csv",show_col_types = FALSE ) -> production_n_trade
+
+production_n_trade -> df2
+
+# 設計附資料點的摺線圖函數
+plot_line_n_point <- function(df,x,y,linecolor,linesize,pointcolor,pointsize){
+  c(
+    geom_line(
+      data = df,
+      mapping = aes(
+        x = x,
+        y = y
+      ),
+      color = linecolor,
+      size = linesize,
+      stat = "identity"
+    ),
+    geom_point(
+      data = df,
+      mapping = aes(
+       x = x,
+       y = y
+      ),
+      color = pointcolor,
+      size = pointsize,
+      stat = "identity"
+    )
+  )
+}
+# 畫出基本圖
+df2$plot2$plot <- function(){
+  ggplot()+
+    plot_line_n_point(df2,df2$Year,df2$Export,"#d37d83",2,"#d37d83",4)+
+    plot_line_n_point(df2,df2$Year,df2$Import,"#106d9b",2,"#106d9b",4)+
+    plot_line_n_point(df2,df2$Year,df2$Total_production,"#4bb900",2,"#4bb900",4)
+}
+# 配上部分文字註解標示
+df2$plot2$plot()+
+  geom_text(
+    mapping = aes(
+      x = 2010,
+      y = 6500,
+      label = "出口量"
+    ),
+    color = "#d37d83",
+    size = 6
+  )+
+  geom_text(
+    mapping = aes(
+      x = 2008,
+      y = 13500,
+      label = "年產量"
+    ),
+    color = "#4bb900",
+    size = 6
+  )+
+  geom_text(
+    mapping = aes(
+      x = 2008,
+      y = 28000,
+      label = "進口量"
+    ),
+    color = "#106d9b",
+    size = 6
+  )+
+  geom_text(
+    mapping = aes(
+      x = 2006,
+      y = 26000,
+      label = "24318"
+    ),
+    color = "#106d9b",
+    size = 4.5
+  )+
+  geom_text(
+    mapping = aes(
+      x = 2020,
+      y = 29000,
+      label = "30546"
+    ),
+    color = "#106d9b",
+    size = 4.5
+  )+
+  geom_text(
+    mapping = aes(
+      x = 2006,
+      y = 21000,
+      label = "19345"
+    ),
+    color = "#4bb900",
+    size = 4.5
+  )+
+  geom_text(
+    mapping = aes(
+      x = 2020,
+      y = 16000,
+      label = "14341"
+    ),
+    color = "#4bb900",
+    size = 4.5
+  )+
+  geom_text(
+    mapping = aes(
+      x = 2006,
+      y = 4000,
+      label = "1963"
+    ),
+    color = "#d37d83",
+    size = 4.5
+  )+
+  geom_text(
+    mapping = aes(
+      x = 2020,
+      y = 6000,
+      label = "7531"
+    ),
+    color = "#d37d83",
+    size = 4.5
+  )-> df2$plot3$plot
+# 加x,y軸標籤與輔助線
+df2$plot3$plot+
+  scale_y_continuous(
+    breaks = c(5000,10000,15000,20000,25000,30000,35000),
+    label = c("5000","10000","15000","20000","25000","30000","35000"),
+    expand = c(0,2000)
+  )+
+  scale_x_continuous(
+    name = "年度",
+    breaks = c(2006,2010,2015,2019,2020),
+    label = c("2006","2010","2015","2019","2020")
+  )+
+  theme(
+    panel.grid.major.y = element_line(color = "grey50"),
+    axis.title.y = element_blank()
+  )+
+  labs(
+    subtitle = "單位 : 公噸",
+    caption = "資料來源：行政院農業委員會資料開放平台"
+  )
+```
+
+## 2020年台灣茶葉出口國別組成百分比
+```{r}
+readr::read_csv(
+  "https://raw.githubusercontent.com/JeffHu520/110-1-Economic-Data-Visualization/main/tea_export_2020.csv",
+  show_col_types = FALSE ) -> export_data_2020
+# 出口量合計
+export_sum <- export_data_2020$Weight |> sum()
+# 算出出口百分比資料
+export_data_2020 |> dplyr::mutate(Weight_percent = Weight / export_sum ) -> export_data_2020
+export_data_2020$Weight_percent [-c(1:6)] |> sum() -> ow_weight_percent 
+export_data_2020$Weight [-c(1:6)] |> sum() -> ow_weight
+# 整理出新df,台茶出口量前6的國家與其他國家總和
+export_data_2020 [c(1:6),] -> df3
+rbind(df3,list("其他",ow_weight,ow_weight_percent)) -> df3
+df3$Weight_percent |> round(digits = 2) -> df3$Weight_percent
+df <- data.frame(x=c("中國大陸 34%","日本 6%","菲律賓\n9%","香港 8%","美國 19%","越南 4%","其他 20%"),
+               y=c(0.34,0.06,0.09,0.08,0.19,0.04,0.2),
+               level=c("1","1","1","1","1","1","1"))
+df$x <- factor(df$x,levels=c("中國大陸 34%","美國 19%","菲律賓\n9%","香港 8%","日本 6%","越南 4%","其他 20%"))
+# 簡圖
+plot3 <- function(){
+  ggplot(
+    data = df,
+    mapping = aes(
+      x = level,
+      y = y,
+      fill = x))+
+    geom_col(width = 1, color = 'white', size = 0.45, position = position_stack()) +
+    geom_text(aes(label = x,y=y), size = 3, position = position_stack(vjust = 0.45)) +
+    coord_polar(clip = "off" ,theta = 'y')
+}
+plot3()+
+  scale_fill_manual(values = c("#00a054","#52bb66","#8cd279","#b7e38c","#d9f0a0","#f1f6b3","#fff8c4"),
+                    names(NULL),
+                    breaks = NULL
+  )+
+  theme_void()+
+  labs(
+    caption = "資料來源 : 行政院農業委員會資料開放平台"
+  )
+```
+
